@@ -1,0 +1,53 @@
+---
+title: 'R Innovation: Animating using Plotly'
+author: "Sofía CM"
+date: "2024-10-15"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+We will be using a package called "plotly" to create our animated graphs. 
+--> Purpose of plotly: converts static ggplot2 plots (ex.scatter plots, bar graphs, line graphs) into interactive graphs 
+--> What it does: when you hover over data points it gives you values
+
+```{r message=FALSE, warning=FALSE, error=TRUE}
+
+#1 load libraries
+library(dplyr)
+library(readxl)
+
+#2 load data (we will be using the data from our first lab)
+df_1<-read.csv("UrbEco_share/assignments/LAB01/biodiv_metrics_from_field.csv")
+```
+Honing in to our first assignments, we will create a basic scatterplot:
+
+```{r} 
+#GGPLOT was not showing up for me, so I installed the package here:
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r}
+LABPLOT<-ggplot(data=df_1, aes(x=richness,y=evenness, color=veg_type))+ 
+  geom_point()+ 
+  geom_smooth(method="lm")+
+  labs(title ="Vegetation Richness VS Evenness of Remnant, Spontaneous & Deliberative Areas", x="Richness", y="Evenness")
+```
+
+As you may notice on the graph, it is difficult to say what type of vegetation type the data points are referring to. 
+Let's animate the graph so that when we hover over the points, the values are shared!
+```{r}
+#1 Install package & library:
+install.packages("plotly")
+library(plotly)
+```
+## Notes on the animated graph: the gray width surrounding the best fit lines represents the confidence interval, which represents the degree to which the sample mean (average) of the dataset is expected to vary from the true population mean.
+```{r}
+#2 Animate your scatterplot using ggplotly(): 
+ggplotly(LABPLOT)
+```
