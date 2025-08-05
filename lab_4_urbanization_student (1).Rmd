@@ -1,0 +1,228 @@
+---
+title: "lab_4_urbanization"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-11-11"
+---
+
+In this RMarkdown sheet, you will import the crowd sourced data from Google Sheets and generate plots and 
+statistics in R.
+
+# Reminders:
+--Do NOT run code using the "Run" button at the top. Use either the green play buttons within each chunk
+  or hit ctrl + Enter (or probably command + enter on Mac) to run a single line of code
+
+--Every time you encounter an error use the broom to clear variables and start fresh from the VERY beginning
+
+--You can never ignore errors. They will always come back to haunt you. You can mostly ignore warnings.
+
+--If I use backticks (```) in the text, that's because it's an accepted way to communicate
+  to the reader that I'm referring to code in the text. It does not mean that you should be using
+  any backticks in your code.
+
+
+
+# 0. Introduction
+
+Start by loading the appropriate libraries. Note that we need one to allow for importing
+data from Google Sheets. After that, getting the data is pretty easy! Make sure to inspect your data.
+
+```{r message=FALSE, warning=FALSE, error=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#load libraries
+library(dplyr)
+library(readxl)
+library(googlesheets4)
+library(ggplot2)
+
+#read in the data from the google sheet
+#tell R that we don't need authorization to access these data
+googlesheets4::gs4_deauth()
+#get the file URL overall and point to the specific sheet of interest within that file
+df <- read_sheet("https://docs.google.com/spreadsheets/d/1QnZ8HxfHwOn6mUgdp_Jp8ZV-eN89ycVwSn3xxfa9dnc/edit?gid=2005941784#gid=2005941784", sheet = "data_for_R")
+
+#inspect your imported data
+head(df)
+
+
+```
+
+# 1. Make a plot just of your city
+
+Make use of filtering to only retain data (in a new data frame)
+for your city.
+
+Then, make a line graph of `area` by `year` for your city.
+Plot should include points on top of the line (looks better). It should
+also include a depiction of error based on plus/minus standard deviation
+using `geom_ribbon()`. Pro tip: use the `fill` and `alpha` settings in
+`geom_ribbon()` to control how it looks. 
+
+Partial credit for a graph that conveys the basic information, 
+so don't obscure the basic information!
+
+Help: https://ggplot2.tidyverse.org/reference/geom_ribbon.html
+
+```{r pressure_mycity, echo=FALSE}
+
+#filter to only YOUR city
+df_buffalo <- df %>% filter(city == "Buffalo")
+
+ggplot(df_buffalo, aes(x = year, y = area)) +
+  geom_line(color = "blue") +
+  geom_point(color = "blue") +
+  geom_ribbon(aes(ymin = meanMinusStd, ymax = meanPlusStd), fill = "turquoise", alpha = 0.2) +
+  labs(title = "Area Over Time for Buffalo, NY",
+       x = "Year",
+       y = "Area (sqkm)") +
+theme(plot.title = element_text(hjust = 0.5))
+
+#Graph shows that the data collection process for this particular city was not very useful in plotting urbanization over time. 
+
+```
+
+# 2. Plot all four cities in a 2x2 grid
+
+Plot all 4 cities using facet_wrap. Transfer over all of the pieces of the 
+chart from above (i.e., line, points, ribbon showing uncertainty should all be present)
+
+Help: http://zevross.com/blog/2019/04/02/easy-multi-panel-plots-in-r-using-facet_wrap-and-facet_grid-from-ggplot2/
+
+```{r pressure_area, echo=FALSE}
+
+ggplot(df, aes(x = year, y = area)) +
+  geom_line(color = "blue") +
+  geom_point(color = "blue") +
+  geom_ribbon(aes(ymin = meanMinusStd, ymax = meanPlusStd), fill = "turquoise", alpha = 0.2) +
+  labs(title = "Area Over Time for Four Cities",
+       x = "Year",
+       y = "Area (sqkm)") +
+  theme(plot.title = element_text(hjust = 0.5))+
+  facet_wrap(vars(city))
+```
+
+# 3 All four cities but on one plot
+
+All the cities on one plot, just means. Use the `color` aesthetic to control the 
+grouping. Once again, show lines and points. All 4 cities should show up on a legend
+automatically. 
+
+Pro tip: when `color` is controlled by your data, it is inside `aes()`. When you 
+simply set it manually to a color, it is outside of `aes()`
+
+Help: https://r-graph-gallery.com/line-chart-several-groups-ggplot2.html
+
+```{r pressure_fourcities, echo=FALSE}
+ggplot(df, aes(x=year, y=area,color=city))+geom_line()+geom_point()+
+  labs(title = "Area Over Time for Four Cities",
+       x = "Year",
+       y = "Area (sqkm)")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+# 5 Now load the data for city population growth
+
+Using piping, `group_by()`, and `summarize()` report the maximum area by city
+and the change in area (max minus min) by city. Your output should be
+a 4 row (city) by 3 column (city, max_area, area_change) table.
+
+Help: https://dplyr.tidyverse.org/reference/summarise.html
+Or here: https://datacarpentry.org/R-genomics/04-dplyr.html#data_manipulation_using_dplyr
+
+
+```{r pressure_poptable, echo=FALSE}
+
+#read in the POPULATION data from the google sheet
+#tell R that we don't need authorization to access these data
+googlesheets4::gs4_deauth()
+#get the file URL overall and point to the specific sheet of interest within that file
+df_pop <- read_sheet("https://docs.google.com/spreadsheets/d/1QnZ8HxfHwOn6mUgdp_Jp8ZV-eN89ycVwSn3xxfa9dnc/edit?gid=2005941784#gid=2005941784", sheet = "CityPopulations")
+
+#inspect your imported data
+head(df_pop)
+
+
+```
+
+
+# 6 Make a line plot of population growth by country
+
+You should be able to replicate/update your plot from the 
+"All four cities but on one plot" section above. Colors should ideally match that
+plot above.
+
+
+```{r pressure_popgrowth, echo=FALSE}
+
+#make the line plot with 4 lines
+ggplot(df_pop, aes(x=year, y=population,color=city))+geom_line()+geom_point()+
+  labs(title = "Population Growth Over Time for Four Cities",
+       x = "Year",
+       y = "Population")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+# 7 Plot population density by city over time: part 1
+
+We now have the data to compare how each city is densifying or sprawling over time.
+Some code will be provided here combine the datasets.
+
+Just run this code chunk to do the dataset merging for you. 
+
+
+```{r pressure_table, echo=FALSE}
+
+#Get pop data that matches the years for which we have extent data
+study_years <- unique(df$year)
+df_pop_filt <- df_pop %>% filter(year %in% study_years)
+
+#make a year-city unique ID to allow for merging of the data
+city_year_UID <- paste0(df_pop_filt$city,"_",df_pop_filt$year)
+df_pop_filt <- df_pop_filt %>% mutate(UID=city_year_UID)
+#same for the other data frame
+city_year_UID_extents <- paste0(df$city,"_",df$year)
+df <- df %>% mutate(UID=city_year_UID_extents)
+
+#now merge the population data on to the extents data
+df <- merge(df, df_pop_filt[,c("UID","population")], by="UID")
+
+#view the new table
+head(df)
+
+```
+
+# 8 Plot population density by city over time: part 2
+
+Here, you'll need to add a new column `pop_dense` that is calculated to be
+population density.
+
+Then, plot population density by year.
+
+```{r pressure_popdense, echo=FALSE}
+
+#create and calculate the pop_dense field (add to the df table using 
+#functions we are trained on)
+df_pop_mutate <- df %>%
+  mutate(pop_dense = population/area)
+# Confirm calculation (print first few rows of the updated table)
+#print out something to confirm your calculation
+head(df_pop_mutate)
+# Plot population density by year
+#plot pop_dense by year using the same plot structure as before 
+#(all cities in one frame differentiated by color of line)
+ggplot(df_pop_mutate, aes(x=year, y=pop_dense,color=city))+geom_line()+geom_point()+ 
+  labs(title = "Population Density Over Time for Four Cities",
+       x = "Year",
+       y = "Population Density")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
