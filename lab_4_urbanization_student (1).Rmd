@@ -1,3 +1,4 @@
+EXAMPLE {COMPLETED LAB REPORT}: SOFIA CASTILLO-MERCED
 ---
 title: "lab_4_urbanization"
 output:
